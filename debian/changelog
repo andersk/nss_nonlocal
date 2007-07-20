@@ -1,0 +1,5 @@
+libnss-nonlocal (1.0-0debathena1) unstable; urgency=low
+
+  * Initial release.
+
+ -- Anders Kaseorg <andersk@mit.edu>  Thu, 19 Jul 2007 21:07:50 -0400
