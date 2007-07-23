@@ -1,5 +1,5 @@
 Source: libnss-nonlocal
-Section: libs
+Section: debathena/libs
 Priority: optional
 Maintainer: Anders Kaseorg <andersk@mit.edu>
 Standards-Version: 3.7.2
