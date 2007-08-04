@@ -7,7 +7,7 @@ CFLAGS = -O2 -Wall
 LD = ld
 
 ALL_CFLAGS = $(CFLAGS) -fPIC
-ALL_LDFLAGS = $(LDFLAGS) -shared -pthread -Wl,-x
+ALL_LDFLAGS = $(LDFLAGS) -shared -Wl,-x
 
 all: libnss_nonlocal.so.2 linktest
 

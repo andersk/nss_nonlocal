@@ -40,6 +40,8 @@
 #include "nsswitch-internal.h"
 #include "nonlocal.h"
 
+#define MAGIC_LOCAL_GR_BUFLEN (sysconf(_SC_GETGR_R_SIZE_MAX) + 7)
+
 
 static service_user *
 nss_group_nonlocal_database(void)
@@ -52,57 +54,32 @@ nss_group_nonlocal_database(void)
 }
 
 
-static __thread int local_only = 0;
-
-enum nss_status
-local_getgrgid_r(gid_t gid, struct group *grp,
-		 char *buffer, size_t buflen, int *errnop)
-{
-    int old_local_only = local_only;
-    int old_errno = errno;
-    int ret;
-    errno = *errnop;
-    local_only = 1;
-
-    ret = getgrgid_r(gid, grp, buffer, buflen, &grp);
-
-    local_only = old_local_only;
-    *errnop = errno;
-    errno = old_errno;
-
-    if (grp != NULL)
-	return NSS_STATUS_SUCCESS;
-    else if (ret == 0)
-	return NSS_STATUS_NOTFOUND;
-    else
-	return NSS_STATUS_TRYAGAIN;
-}
-
 enum nss_status
 check_nonlocal_gid(const char *user, gid_t gid, int *errnop)
 {
-    struct group local_grp;
-    int local_errno = errno;
-    enum nss_status local_status, status = NSS_STATUS_SUCCESS;
-    int local_buflen = sysconf(_SC_GETGR_R_SIZE_MAX);
-    char *local_buffer = malloc(local_buflen);
-    if (local_buffer == NULL) {
+    enum nss_status status = NSS_STATUS_SUCCESS;
+    struct group gbuf;
+    struct group *gbufp = &gbuf;
+    int ret;
+    int old_errno = errno;
+    int buflen = MAGIC_LOCAL_GR_BUFLEN;
+    char *buf = malloc(buflen);
+    if (buf == NULL) {
 	*errnop = ENOMEM;
-	errno = local_errno;
+	errno = old_errno;
 	return NSS_STATUS_TRYAGAIN;
     }
-    local_errno = 0;
-    local_status = local_getgrgid_r(gid, &local_grp, local_buffer,
-				    local_buflen, &local_errno);
-    if (local_status == NSS_STATUS_SUCCESS) {
-	syslog(LOG_WARNING, "nss_nonlocal: removing local group %u (%s) from non-local user %s\n", local_grp.gr_gid, local_grp.gr_name, user);
+    errno = 0;
+    ret = getgrgid_r(gid, gbufp, buf, buflen, &gbufp);
+    if (ret != 0) {
+	*errnop = old_errno;
+	status = NSS_STATUS_TRYAGAIN;
+    } else if (gbufp != NULL) {
+	syslog(LOG_WARNING, "nss_nonlocal: removing local group %u (%s) from non-local user %s\n", gbuf.gr_gid, gbuf.gr_name, user);
 	status = NSS_STATUS_NOTFOUND;
-    } else if (local_status != NSS_STATUS_NOTFOUND &&
-	       local_status != NSS_STATUS_UNAVAIL) {
-	*errnop = local_errno;
-	status = local_status;
     }
-    free(local_buffer);
+    free(buf);
+    errno = old_errno;
     return status;
 }
 
@@ -259,7 +236,7 @@ _nss_nonlocal_getgrgid_r(gid_t gid, struct group *grp,
 	void *ptr;
     } fct;
 
-    if (local_only == 1)
+    if (buflen == MAGIC_LOCAL_GR_BUFLEN)
 	return NSS_STATUS_UNAVAIL;
 
     nip = nss_group_nonlocal_database();

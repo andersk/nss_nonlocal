@@ -42,6 +42,8 @@
 #include "nsswitch-internal.h"
 #include "nonlocal.h"
 
+#define MAGIC_LOCAL_PW_BUFLEN (sysconf(_SC_GETPW_R_SIZE_MAX) + 7)
+
 
 static service_user *
 nss_passwd_nonlocal_database(void)
@@ -54,57 +56,32 @@ nss_passwd_nonlocal_database(void)
 }
 
 
-static __thread int local_only = 0;
-
-enum nss_status
-local_getpwuid_r(uid_t uid, struct passwd *pwd,
-		 char *buffer, size_t buflen, int *errnop)
-{
-    int old_local_only = local_only;
-    int old_errno = errno;
-    int ret;
-    errno = *errnop;
-    local_only = 1;
-
-    ret = getpwuid_r(uid, pwd, buffer, buflen, &pwd);
-
-    local_only = old_local_only;
-    *errnop = errno;
-    errno = old_errno;
-
-    if (pwd != NULL)
-	return NSS_STATUS_SUCCESS;
-    else if (ret == 0)
-	return NSS_STATUS_NOTFOUND;
-    else
-	return NSS_STATUS_TRYAGAIN;
-}
-
 enum nss_status
 check_nonlocal_uid(const char *user, uid_t uid, int *errnop)
 {
-    struct passwd local_pwd;
-    int local_errno = errno;
-    enum nss_status local_status, status = NSS_STATUS_SUCCESS;
-    int local_buflen = sysconf(_SC_GETPW_R_SIZE_MAX);
-    char *local_buffer = malloc(local_buflen);
-    if (local_buffer == NULL) {
+    enum nss_status status = NSS_STATUS_SUCCESS;
+    struct passwd pwbuf;
+    struct passwd *pwbufp = &pwbuf;
+    int ret;
+    int old_errno = errno;
+    int buflen = MAGIC_LOCAL_PW_BUFLEN;
+    char *buf = malloc(buflen);
+    if (buf == NULL) {
 	*errnop = ENOMEM;
-	errno = local_errno;
+	errno = old_errno;
 	return NSS_STATUS_TRYAGAIN;
     }
-    local_errno = 0;
-    local_status = local_getpwuid_r(uid, &local_pwd, local_buffer,
-				    local_buflen, &local_errno);
-    if (local_status == NSS_STATUS_SUCCESS) {
-	syslog(LOG_ERR, "nss_nonlocal: possible spoofing attack: non-local user %s has same UID as local user %s!\n", user, local_pwd.pw_name);
+    errno = 0;
+    ret = getpwuid_r(uid, pwbufp, buf, buflen, &pwbufp);
+    if (ret != 0) {
+	*errnop = errno;
+	status = NSS_STATUS_TRYAGAIN;
+    } else if (pwbufp != NULL) {
+	syslog(LOG_ERR, "nss_nonlocal: possible spoofing attack: non-local user %s has same UID as local user %s!\n", user, pwbuf.pw_name);
 	status = NSS_STATUS_NOTFOUND;
-    } else if (local_status != NSS_STATUS_NOTFOUND &&
-	       local_status != NSS_STATUS_UNAVAIL) {
-	*errnop = local_errno;
-	status = local_status;
     }
-    free(local_buffer);
+    free(buf);
+    errno = old_errno;
     return status;
 }
 
@@ -270,7 +247,7 @@ _nss_nonlocal_getpwuid_r(uid_t uid, struct passwd *pwd,
     } fct;
     int group_errno;
 
-    if (local_only == 1)
+    if (buflen == MAGIC_LOCAL_PW_BUFLEN)
 	return NSS_STATUS_UNAVAIL;
 
     nip = nss_passwd_nonlocal_database();
