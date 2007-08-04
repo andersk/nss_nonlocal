@@ -1,3 +1,9 @@
+libnss-nonlocal (1.1) unstable; urgency=low
+
+  * Link with pthread to be safe.
+
+ -- Anders Kaseorg <andersk@mit.edu>  Fri, 03 Aug 2007 21:24:17 -0400
+
 libnss-nonlocal (1.0-0debathena2) unstable; urgency=low
 
   * Section: debathena/libs.
