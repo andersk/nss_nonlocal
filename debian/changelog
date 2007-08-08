@@ -1,3 +1,11 @@
+libnss-nonlocal (1.2) unstable; urgency=low
+
+  * Use a magic buflen instead of thread-local variables, to avoid
+    strange problems on sarge.
+  * Don't link with pthread.
+
+ -- Anders Kaseorg <andersk@mit.edu>  Tue, 07 Aug 2007 22:00:28 -0400
+
 libnss-nonlocal (1.1) unstable; urgency=low
 
   * Link with pthread to be safe.
