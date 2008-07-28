@@ -43,7 +43,13 @@
 #include "nsswitch-internal.h"
 #include "nonlocal.h"
 
-#define MAGIC_LOCAL_PW_BUFLEN (sysconf(_SC_GETPW_R_SIZE_MAX) + 7)
+
+enum nss_status
+_nss_nonlocal_getpwuid_r(uid_t uid, struct passwd *pwd,
+			 char *buffer, size_t buflen, int *errnop);
+enum nss_status
+_nss_nonlocal_getpwnam_r(const char *name, struct passwd *pwd,
+			 char *buffer, size_t buflen, int *errnop);
 
 
 static service_user *
@@ -72,7 +78,8 @@ check_nonlocal_uid(const char *user, uid_t uid, int *errnop)
     } fct;
     struct passwd pwbuf;
     int old_errno = errno;
-    int buflen = MAGIC_LOCAL_PW_BUFLEN;
+
+    int buflen = sysconf(_SC_GETPW_R_SIZE_MAX);
     char *buf = malloc(buflen);
     if (buf == NULL) {
 	*errnop = ENOMEM;
@@ -88,7 +95,10 @@ check_nonlocal_uid(const char *user, uid_t uid, int *errnop)
     nip = startp;
     fct.ptr = fct_start;
     do {
-	status = DL_CALL_FCT(fct.l, (uid, &pwbuf, buf, buflen, errnop));
+	if (fct.l == _nss_nonlocal_getpwuid_r)
+	    status = NSS_STATUS_NOTFOUND;
+	else
+	    status = DL_CALL_FCT(fct.l, (uid, &pwbuf, buf, buflen, errnop));
 	if (status == NSS_STATUS_TRYAGAIN && *errnop == ERANGE)
 	    break;
     } while (__nss_next(&nip, fct_name, &fct.ptr, status, 0) == 0);
@@ -119,7 +129,8 @@ check_nonlocal_user(const char *user, int *errnop)
     } fct;
     struct passwd pwbuf;
     int old_errno = errno;
-    int buflen = MAGIC_LOCAL_PW_BUFLEN;
+
+    int buflen = sysconf(_SC_GETPW_R_SIZE_MAX);
     char *buf = malloc(buflen);
     if (buf == NULL) {
 	*errnop = ENOMEM;
@@ -135,7 +146,10 @@ check_nonlocal_user(const char *user, int *errnop)
     nip = startp;
     fct.ptr = fct_start;
     do {
-	status = DL_CALL_FCT(fct.l, (user, &pwbuf, buf, buflen, errnop));
+	if (fct.l == _nss_nonlocal_getpwnam_r)
+	    status = NSS_STATUS_NOTFOUND;
+	else
+	    status = DL_CALL_FCT(fct.l, (user, &pwbuf, buf, buflen, errnop));
 	if (status == NSS_STATUS_TRYAGAIN && *errnop == ERANGE)
 	    break;
     } while (__nss_next(&nip, fct_name, &fct.ptr, status, 0) == 0);
@@ -229,8 +243,7 @@ _nss_nonlocal_getpwent_r(struct passwd *pwd, char *buffer, size_t buflen,
     enum nss_status status;
 
     char *nonlocal_ignore = getenv(NONLOCAL_IGNORE_ENV);
-    if (buflen == MAGIC_LOCAL_PW_BUFLEN ||
-	(nonlocal_ignore != NULL && nonlocal_ignore[0] != '\0'))
+    if (nonlocal_ignore != NULL && nonlocal_ignore[0] != '\0')
 	return NSS_STATUS_UNAVAIL;
 
     if (pwent_nip == NULL) {
@@ -276,8 +289,7 @@ _nss_nonlocal_getpwnam_r(const char *name, struct passwd *pwd,
     int group_errno;
 
     char *nonlocal_ignore = getenv(NONLOCAL_IGNORE_ENV);
-    if (buflen == MAGIC_LOCAL_PW_BUFLEN ||
-	(nonlocal_ignore != NULL && nonlocal_ignore[0] != '\0'))
+    if (nonlocal_ignore != NULL && nonlocal_ignore[0] != '\0')
 	return NSS_STATUS_UNAVAIL;
 
     nip = nss_passwd_nonlocal_database();
@@ -323,8 +335,7 @@ _nss_nonlocal_getpwuid_r(uid_t uid, struct passwd *pwd,
     int group_errno;
 
     char *nonlocal_ignore = getenv(NONLOCAL_IGNORE_ENV);
-    if (buflen == MAGIC_LOCAL_PW_BUFLEN ||
-	(nonlocal_ignore != NULL && nonlocal_ignore[0] != '\0'))
+    if (nonlocal_ignore != NULL && nonlocal_ignore[0] != '\0')
 	return NSS_STATUS_UNAVAIL;
 
     nip = nss_passwd_nonlocal_database();
