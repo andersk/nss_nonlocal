@@ -72,7 +72,6 @@ check_nonlocal_gid(const char *user, gid_t gid, int *errnop)
 	errno = old_errno;
 	return NSS_STATUS_TRYAGAIN;
     }
-    errno = 0;
     ret = getgrgid_r(gid, gbufp, buf, buflen, &gbufp);
     if (ret != 0) {
 	*errnop = old_errno;
@@ -101,7 +100,6 @@ get_local_group(const char *name, struct group *grp, char *buffer, size_t buflen
 	errno = old_errno;
 	return NSS_STATUS_TRYAGAIN;
     }
-    errno = 0;
     ret = getgrnam_r(name, gbufp, buf, len, &gbufp);
     if (ret != 0) {
 	*errnop = old_errno;

@@ -72,7 +72,6 @@ check_nonlocal_uid(const char *user, uid_t uid, int *errnop)
 	errno = old_errno;
 	return NSS_STATUS_TRYAGAIN;
     }
-    errno = 0;
     ret = getpwuid_r(uid, pwbufp, buf, buflen, &pwbufp);
     if (ret != 0) {
 	*errnop = errno;
@@ -101,7 +100,6 @@ check_nonlocal_user(const char *user, int *errnop)
 	errno = old_errno;
 	return NSS_STATUS_TRYAGAIN;
     }
-    errno = 0;
     ret = getpwnam_r(user, pwbufp, buf, buflen, &pwbufp);
     if (ret != 0) {
 	*errnop = errno;
