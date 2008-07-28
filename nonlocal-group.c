@@ -356,10 +356,10 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
 
     /* Check that the user is a nonlocal user before adding any groups. */
     status = check_nonlocal_user(user, errnop);
-    if (status == NSS_STATUS_NOTFOUND)
-	is_local = 1;
-    else if (status != NSS_STATUS_SUCCESS)
+    if (status == NSS_STATUS_TRYAGAIN)
 	return status;
+    else if (status != NSS_STATUS_SUCCESS)
+	is_local = 1;
 
     int old_errno = errno;
 
@@ -372,14 +372,15 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
     }
     status = get_local_group(MAGIC_LOCAL_GROUPNAME,
 			     &local_users_group, buffer, buflen, errnop);
-    if (status == NSS_STATUS_NOTFOUND) {
+    if (status == NSS_STATUS_SUCCESS) {
+	local_users_gid = local_users_group.gr_gid;
+    } else if (status == NSS_STATUS_TRYAGAIN) {
+	return status;
+    } else {
 	syslog(LOG_WARNING, "nss_nonlocal: Group %s does not exist locally!",
 	       MAGIC_LOCAL_GROUPNAME);
 	local_users_gid = -1;
-    } else if (status != NSS_STATUS_SUCCESS) {
-	return status;
-    } else
-	local_users_gid = local_users_group.gr_gid;
+    }
     free(buffer);
 
     if (is_local) {
@@ -394,15 +395,16 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
 	}
  	status = get_local_group(MAGIC_NONLOCAL_GROUPNAME,
 				 &nonlocal_users_group, buffer, buflen, errnop);
-	if (status == NSS_STATUS_NOTFOUND) {
+	if (status == NSS_STATUS_SUCCESS) {
+	    gid = nonlocal_users_group.gr_gid;
+	} else if (status == NSS_STATUS_TRYAGAIN) {
+	    errno = old_errno;
+	    return status;
+	} else {
 	    syslog(LOG_WARNING, "nss_nonlocal: Group %s does not exist locally!",
 		   MAGIC_NONLOCAL_GROUPNAME);
 	    gid = -1;
-	} else if (status != NSS_STATUS_SUCCESS) {
-	    errno = old_errno;
-	    return status;
-	} else
-	    gid = nonlocal_users_group.gr_gid;
+	}
 	free(buffer);
     }
 
@@ -478,7 +480,7 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
 	status = check_nonlocal_gid(user, (*groupsp)[in], &nonlocal_errno);
 	if (status == NSS_STATUS_SUCCESS) {
 	    (*groupsp)[out++] = (*groupsp)[in];
-	} else if (status != NSS_STATUS_NOTFOUND) {
+	} else if (status == NSS_STATUS_TRYAGAIN) {
 	    *start = out;
 	    *errnop = nonlocal_errno;
 	    return status;
