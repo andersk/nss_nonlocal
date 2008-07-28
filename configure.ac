@@ -1,8 +1,11 @@
 AC_INIT([nss_nonlocal], [1.7], [andersk@mit.edu])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AC_PREFIX_DEFAULT([/])
+AC_DISABLE_STATIC
 AC_PROG_CC
 AC_PROG_INSTALL
+AC_PROG_LIBTOOL
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile])
