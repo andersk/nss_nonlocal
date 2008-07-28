@@ -375,6 +375,7 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
     if (status == NSS_STATUS_SUCCESS) {
 	local_users_gid = local_users_group.gr_gid;
     } else if (status == NSS_STATUS_TRYAGAIN) {
+	free(buffer);
 	return status;
     } else {
 	syslog(LOG_WARNING, "nss_nonlocal: Group %s does not exist locally!",
@@ -398,6 +399,7 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
 	if (status == NSS_STATUS_SUCCESS) {
 	    gid = nonlocal_users_group.gr_gid;
 	} else if (status == NSS_STATUS_TRYAGAIN) {
+	    free(buffer);
 	    errno = old_errno;
 	    return status;
 	} else {
