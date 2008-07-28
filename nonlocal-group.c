@@ -157,38 +157,39 @@ get_local_group(const char *name, struct group *grp, char *buffer, size_t buflen
 	    break;
     } while (__nss_next(&nip, fct_name, &fct.ptr, status, 0) == 0);
 
-    if (status == NSS_STATUS_SUCCESS) {
-	n = snprintf(buffer, buflen, "%s", gbuf.gr_name);
-	if (n < 0 || n >= buflen) {
-	    *errnop = ERANGE;
-	    status = NSS_STATUS_TRYAGAIN;
-	    goto get_local_group_done;
-	}
-	grp->gr_name = buffer;
-	buffer += n;
-	buflen -= n;
+    if (status != NSS_STATUS_SUCCESS)
+	goto get_local_group_done;
 
-	n = snprintf(buffer, buflen, "%s", gbuf.gr_passwd);
-	if (n < 0 || n >= buflen) {
-	    *errnop = ERANGE;
-	    status = NSS_STATUS_TRYAGAIN;
-	    goto get_local_group_done;
-	}
-	grp->gr_passwd = buffer;
-	buffer += n;
-	buflen -= n;
-
-	grp->gr_gid = gbuf.gr_gid;
-
-	if (buflen < sizeof(void *)) {
-	    *errnop = ERANGE;
-	    status = NSS_STATUS_TRYAGAIN;
-	    goto get_local_group_done;
-	}
-	*(void **)buffer = NULL;
-	buffer += sizeof(void *);
-	buflen -= sizeof(void *);
+    n = snprintf(buffer, buflen, "%s", gbuf.gr_name);
+    if (n < 0 || n >= buflen) {
+	*errnop = ERANGE;
+	status = NSS_STATUS_TRYAGAIN;
+	goto get_local_group_done;
     }
+    grp->gr_name = buffer;
+    buffer += n;
+    buflen -= n;
+
+    n = snprintf(buffer, buflen, "%s", gbuf.gr_passwd);
+    if (n < 0 || n >= buflen) {
+	*errnop = ERANGE;
+	status = NSS_STATUS_TRYAGAIN;
+	goto get_local_group_done;
+    }
+    grp->gr_passwd = buffer;
+    buffer += n;
+    buflen -= n;
+
+    grp->gr_gid = gbuf.gr_gid;
+
+    if (buflen < sizeof(void *)) {
+	*errnop = ERANGE;
+	status = NSS_STATUS_TRYAGAIN;
+	goto get_local_group_done;
+    }
+    *(void **)buffer = NULL;
+    buffer += sizeof(void *);
+    buflen -= sizeof(void *);
 
  get_local_group_done:
     free(buf);
