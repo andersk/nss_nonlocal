@@ -1,9 +1,14 @@
-exec_prefix = /
-libdir = $(exec_prefix)/lib
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libdir = @libdir@
 
-INSTALL = install
-CC = gcc
-CFLAGS = -O2 -Wall
+INSTALL = @INSTALL@
+CC = @CC@
+
+CFLAGS = @CFLAGS@
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
 
 ALL_CFLAGS = $(CFLAGS) -fPIC
 ALL_LDFLAGS = $(LDFLAGS) -shared -Wl,-x
@@ -13,7 +18,7 @@ all: libnss_nonlocal.so.2 linktest
 OBJS = nonlocal-passwd.o nonlocal-group.o nonlocal-shadow.o
 
 libnss_nonlocal.so.2: $(OBJS) libnss_nonlocal.map
-	$(CC) -o $@ $(ALL_LDFLAGS) -Wl,-soname,$@ -Wl,--version-script=libnss_nonlocal.map $(OBJS) $(LOADLIBES) $(LDLIBS)
+	$(CC) -o $@ $(CFLAGS) $(ALL_LDFLAGS) -Wl,-soname,$@ -Wl,--version-script=libnss_nonlocal.map $(OBJS) $(LIBS)
 
 %.o: %.c
 	$(CC) -c $(ALL_CFLAGS) $(CPPFLAGS) $<
@@ -23,7 +28,7 @@ nonlocal-group.o: nonlocal-group.c nsswitch-internal.h nonlocal.h
 nonlocal-shadow.o: nonlocal-shadow.c nsswitch-internal.h nonlocal.h
 
 linktest: libnss_nonlocal.so.2
-	$(CC) $(LDFLAGS) -nostdlib -Wl,--entry=0 -o /dev/null $^
+	$(CC) $(CFLAGS) $(LDFLAGS) -nostdlib -Wl,--entry=0 -o /dev/null $^
 
 install: libnss_nonlocal.so.2
 	$(INSTALL) -d $(DESTDIR)$(libdir)
