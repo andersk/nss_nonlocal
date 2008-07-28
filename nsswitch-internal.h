@@ -6,6 +6,15 @@
 #ifndef NSSWITCH_INTERNAL_H
 #define NSSWITCH_INTERNAL_H
 
+#include "config.h"
+
+/* glibc/config.h.in */
+#if defined USE_REGPARMS && !defined PROF && !defined __BOUNDED_POINTERS__
+# define internal_function __attribute__ ((regparm (3), stdcall))
+#else
+# define internal_function
+#endif
+
 /* glibc/nss/nsswitch.h */
 typedef struct service_user service_user;
 
