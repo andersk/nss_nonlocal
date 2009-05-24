@@ -152,7 +152,7 @@ get_local_group(const char *name, struct group *grp, char *buffer, size_t buflen
 	if (fct.l == _nss_nonlocal_getgrnam_r)
 	    status = NSS_STATUS_NOTFOUND;
 	else
-	    status = DL_CALL_FCT(fct.l, (name, &gbuf, buf, buflen, errnop));
+	    status = DL_CALL_FCT(fct.l, (name, &gbuf, buf, len, errnop));
 	if (status == NSS_STATUS_TRYAGAIN && *errnop == ERANGE)
 	    break;
     } while (__nss_next(&nip, fct_name, &fct.ptr, status, 0) == 0);
