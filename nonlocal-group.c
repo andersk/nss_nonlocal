@@ -390,6 +390,8 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
     gid_t local_users_gid, gid;
     int is_local = 0;
     char *buffer;
+    int old_errno;
+    int in, out, i;
 
     /* Check that the user is a nonlocal user before adding any groups. */
     status = check_nonlocal_user(user, errnop);
@@ -398,7 +400,7 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
     else if (status != NSS_STATUS_SUCCESS)
 	is_local = 1;
 
-    int old_errno = errno;
+    old_errno = errno;
 
     status = get_local_group(MAGIC_LOCAL_GROUPNAME,
 			     &local_users_group, &buffer, errnop);
@@ -461,7 +463,7 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
     if (is_local)
 	return NSS_STATUS_SUCCESS;
 
-    int in = *start, out = *start, i;
+    in = out = *start;
 
     nip = nss_group_nonlocal_database();
     if (nip == NULL)
