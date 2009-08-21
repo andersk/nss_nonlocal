@@ -79,7 +79,7 @@ check_nonlocal_uid(const char *user, uid_t uid, int *errnop)
     struct passwd pwbuf;
     int old_errno = errno;
 
-    int buflen = sysconf(_SC_GETPW_R_SIZE_MAX);
+    size_t buflen = sysconf(_SC_GETPW_R_SIZE_MAX);
     char *buf = malloc(buflen);
     if (buf == NULL) {
 	*errnop = ENOMEM;
@@ -140,7 +140,7 @@ check_nonlocal_user(const char *user, int *errnop)
     struct passwd pwbuf;
     int old_errno = errno;
 
-    int buflen = sysconf(_SC_GETPW_R_SIZE_MAX);
+    size_t buflen = sysconf(_SC_GETPW_R_SIZE_MAX);
     char *buf = malloc(buflen);
     if (buf == NULL) {
 	*errnop = ENOMEM;

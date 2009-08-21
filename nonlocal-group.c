@@ -81,7 +81,7 @@ check_nonlocal_gid(const char *user, gid_t gid, int *errnop)
     struct group gbuf;
     int old_errno = errno;
 
-    int buflen = sysconf(_SC_GETGR_R_SIZE_MAX);
+    size_t buflen = sysconf(_SC_GETGR_R_SIZE_MAX);
     char *buf = malloc(buflen);
     if (buf == NULL) {
 	*errnop = ENOMEM;
