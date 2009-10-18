@@ -329,6 +329,11 @@ _nss_nonlocal_getgrnam_r(const char *name, struct group *grp,
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
+    if (strcmp(name, grp->gr_name) != 0) {
+	syslog(LOG_ERR, "nss_nonlocal: discarding group %s from lookup for group %s\n", grp->gr_name, name);
+	return NSS_STATUS_NOTFOUND;
+    }
+
     return check_nonlocal_gid(name, grp->gr_gid, errnop);
 }
 

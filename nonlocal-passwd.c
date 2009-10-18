@@ -329,6 +329,11 @@ _nss_nonlocal_getpwnam_r(const char *name, struct passwd *pwd,
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
+    if (strcmp(name, pwd->pw_name) != 0) {
+	syslog(LOG_ERR, "nss_nonlocal: discarding user %s from lookup for user %s\n", pwd->pw_name, name);
+	return NSS_STATUS_NOTFOUND;
+    }
+
     status = check_nonlocal_uid(name, pwd->pw_uid, errnop);
     if (status != NSS_STATUS_SUCCESS)
 	return status;
