@@ -127,6 +127,12 @@ check_nonlocal_gid(const char *user, gid_t gid, int *errnop)
 }
 
 enum nss_status
+check_nonlocal_group(const char *user, struct group *grp, int *errnop)
+{
+    return check_nonlocal_gid(user, grp->gr_gid, errnop);
+}
+
+enum nss_status
 get_local_group(const char *name, struct group *grp, char **buffer, int *errnop)
 {
     static const char *fct_name = "getgrnam_r";
@@ -280,7 +286,7 @@ _nss_nonlocal_getgrent_r(struct group *grp, char *buffer, size_t buflen,
 	    do
 		status = DL_CALL_FCT(grent_fct.l, (grp, buffer, buflen, errnop));
 	    while (status == NSS_STATUS_SUCCESS &&
-		   check_nonlocal_gid("(unknown)", grp->gr_gid, &nonlocal_errno) != NSS_STATUS_SUCCESS);
+		   check_nonlocal_group("(unknown)", grp, &nonlocal_errno) != NSS_STATUS_SUCCESS);
 	}
 	if (status == NSS_STATUS_TRYAGAIN && *errnop == ERANGE)
 	    return status;
@@ -334,7 +340,7 @@ _nss_nonlocal_getgrnam_r(const char *name, struct group *grp,
 	return NSS_STATUS_NOTFOUND;
     }
 
-    return check_nonlocal_gid(name, grp->gr_gid, errnop);
+    return check_nonlocal_group(name, grp, errnop);
 }
 
 enum nss_status
@@ -372,7 +378,7 @@ _nss_nonlocal_getgrgid_r(gid_t gid, struct group *grp,
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
-    return check_nonlocal_gid(grp->gr_name, grp->gr_gid, errnop);
+    return check_nonlocal_group(grp->gr_name, grp, errnop);
 }
 
 enum nss_status

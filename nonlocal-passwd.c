@@ -125,6 +125,12 @@ check_nonlocal_uid(const char *user, uid_t uid, int *errnop)
 }
 
 enum nss_status
+check_nonlocal_passwd(const char *user, struct passwd *pwd, int *errnop)
+{
+    return check_nonlocal_uid(user, pwd->pw_uid, errnop);
+}
+
+enum nss_status
 check_nonlocal_user(const char *user, int *errnop)
 {
     static const char *fct_name = "getpwnam_r";
@@ -279,7 +285,7 @@ _nss_nonlocal_getpwent_r(struct passwd *pwd, char *buffer, size_t buflen,
 	    do
 		status = DL_CALL_FCT(pwent_fct.l, (pwd, buffer, buflen, errnop));
 	    while (status == NSS_STATUS_SUCCESS &&
-		   check_nonlocal_uid(pwd->pw_name, pwd->pw_uid, &nonlocal_errno) != NSS_STATUS_SUCCESS);
+		   check_nonlocal_passwd(pwd->pw_name, pwd, &nonlocal_errno) != NSS_STATUS_SUCCESS);
 	}
 	if (status == NSS_STATUS_TRYAGAIN && *errnop == ERANGE)
 	    return status;
@@ -334,7 +340,7 @@ _nss_nonlocal_getpwnam_r(const char *name, struct passwd *pwd,
 	return NSS_STATUS_NOTFOUND;
     }
 
-    status = check_nonlocal_uid(name, pwd->pw_uid, errnop);
+    status = check_nonlocal_passwd(name, pwd, errnop);
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
@@ -380,7 +386,7 @@ _nss_nonlocal_getpwuid_r(uid_t uid, struct passwd *pwd,
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
-    status = check_nonlocal_uid(pwd->pw_name, pwd->pw_uid, errnop);
+    status = check_nonlocal_passwd(pwd->pw_name, pwd, errnop);
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
