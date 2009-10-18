@@ -127,6 +127,19 @@ check_nonlocal_uid(const char *user, uid_t uid, int *errnop)
 enum nss_status
 check_nonlocal_passwd(const char *user, struct passwd *pwd, int *errnop)
 {
+    enum nss_status status = NSS_STATUS_SUCCESS;
+    int old_errno = errno;
+    char *end;
+    unsigned long uid;
+
+    errno = 0;
+    uid = strtoul(pwd->pw_name, &end, 10);
+    if (errno == 0 && *end == '\0' && (uid_t)uid == uid)
+	status = check_nonlocal_uid(user, uid, errnop);
+    errno = old_errno;
+    if (status != NSS_STATUS_SUCCESS)
+	return status;
+
     return check_nonlocal_uid(user, pwd->pw_uid, errnop);
 }
 

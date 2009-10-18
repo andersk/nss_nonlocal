@@ -129,6 +129,19 @@ check_nonlocal_gid(const char *user, gid_t gid, int *errnop)
 enum nss_status
 check_nonlocal_group(const char *user, struct group *grp, int *errnop)
 {
+    enum nss_status status = NSS_STATUS_SUCCESS;
+    int old_errno = errno;
+    char *end;
+    unsigned long gid;
+
+    errno = 0;
+    gid = strtoul(grp->gr_name, &end, 10);
+    if (errno == 0 && *end == '\0' && (gid_t)gid == gid)
+	status = check_nonlocal_gid(user, gid, errnop);
+    errno = old_errno;
+    if (status != NSS_STATUS_SUCCESS)
+	return status;
+
     return check_nonlocal_gid(user, grp->gr_gid, errnop);
 }
 
