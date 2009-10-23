@@ -391,6 +391,11 @@ _nss_nonlocal_getgrgid_r(gid_t gid, struct group *grp,
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
+    if (gid != grp->gr_gid) {
+	syslog(LOG_ERR, "nss_nonlocal: discarding gid %d from lookup for gid %d\n", grp->gr_gid, gid);
+	return NSS_STATUS_NOTFOUND;
+    }
+
     return check_nonlocal_group(grp->gr_name, grp, errnop);
 }
 

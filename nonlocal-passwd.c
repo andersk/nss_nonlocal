@@ -399,6 +399,11 @@ _nss_nonlocal_getpwuid_r(uid_t uid, struct passwd *pwd,
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
+    if (uid != pwd->pw_uid) {
+	syslog(LOG_ERR, "nss_nonlocal: discarding uid %d from lookup for uid %d\n", pwd->pw_uid, uid);
+	return NSS_STATUS_NOTFOUND;
+    }
+
     status = check_nonlocal_passwd(pwd->pw_name, pwd, errnop);
     if (status != NSS_STATUS_SUCCESS)
 	return status;
