@@ -6,6 +6,10 @@ DEB_AUTO_UPDATE_AUTOMAKE = 1.9
 DEB_AUTO_UPDATE_ACLOCAL = 1.9
 DEB_AUTO_UPDATE_LIBTOOL = pre
 
+# Fix http://bugs.debian.org/576967 : CDBS 0.4.77 in squeeze
+# incorrectly splits multiword $(CC) and $(CXX).
+override cdbs_set_nondefaultvars = $(foreach var,$1,$(if $(filter-out $(origin $(var)),default),$(var)='$($(var))'))
+
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/autotools.mk
 
