@@ -7,6 +7,7 @@ libnss-nonlocal (1.11-0debathena1) UNRELEASED; urgency=low
       users
   * Update build flags for biarch packages (fixes lib32nss-nonlocal path
     on squeeze).
+  * Bump Standards-Version to 3.8.4 (no changes required).
 
  -- Anders Kaseorg <andersk@mit.edu>  Thu, 29 Apr 2010 00:12:44 -0400
 
