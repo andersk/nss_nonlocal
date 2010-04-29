@@ -5,6 +5,8 @@ libnss-nonlocal (1.11-0debathena1) UNRELEASED; urgency=low
     - Update licensing to LGPLv2.1+.
     - Change syslog priority when removing local groups from non-local
       users
+  * Update build flags for biarch packages (fixes lib32nss-nonlocal path
+    on squeeze).
 
  -- Anders Kaseorg <andersk@mit.edu>  Thu, 29 Apr 2010 00:12:44 -0400
 
