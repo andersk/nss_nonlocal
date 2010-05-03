@@ -49,8 +49,10 @@ configure/lib32nss-nonlocal:: CC += -m32
 # i386_slibdir in eglibc/debian/sysdeps/amd64.mk
 ifeq ($(or $(IS_UBUNTU), $(call libc6_ge, 2.9-14~)), y)
 configure/lib32nss-nonlocal:: DEB_CONFIGURE_EXTRA_FLAGS += --libdir="\$${prefix}/lib32"
+binary-install/lib32nss-nonlocal:: DEB_DH_INSTALL_ARGS = 'lib32/*'
 else
 configure/lib32nss-nonlocal:: DEB_CONFIGURE_PREFIX = /emul/ia32-linux
+binary-install/lib32nss-nonlocal:: DEB_DH_INSTALL_ARGS = 'emul/ia32-linux/lib/*'
 endif
 
 DEB_BUILDDIR_lib64nss-nonlocal = debian/build_64
