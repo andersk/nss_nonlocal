@@ -12,6 +12,7 @@ libnss-nonlocal (1.11-0debathena1) UNRELEASED; urgency=low
   * Disable CDBS cross-building logic, to fix a mysterious FTBFS where
     configure --host fails to find nm.
   * Bump Standards-Version to 3.8.4 (no changes required).
+  * Bump Debhelper compatibility level to 6.
 
  -- Anders Kaseorg <andersk@mit.edu>  Thu, 29 Apr 2010 00:12:44 -0400
 
