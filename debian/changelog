@@ -9,6 +9,8 @@ libnss-nonlocal (1.11-0debathena1) UNRELEASED; urgency=low
     on squeeze).
   * Fix FTBFS on squeeze due to CDBS’s buggy splitting of multiword
     $(CC) (Debian bug #576967).
+  * Disable CDBS cross-building logic, to fix a mysterious FTBFS where
+    configure --host fails to find nm.
   * Bump Standards-Version to 3.8.4 (no changes required).
 
  -- Anders Kaseorg <andersk@mit.edu>  Thu, 29 Apr 2010 00:12:44 -0400
