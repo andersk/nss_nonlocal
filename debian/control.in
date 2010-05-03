@@ -1,7 +1,7 @@
 Source: libnss-nonlocal
 Section: debathena/libs
 Priority: optional
-Maintainer: Debathena Project <debathena@mit.edu>
+Maintainer: Anders Kaseorg <andersk@mit.edu>
 Standards-Version: 3.8.4
 Build-Depends: @cdbs@, gcc-multilib [amd64 i386] | gcc-4.1 (<< 4.1.2) [amd64 i386], libc6-dev-i386 [amd64], libc6-dev-amd64 [i386], lsb-release
 
