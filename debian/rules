@@ -61,6 +61,9 @@ configure/lib64nss-nonlocal:: CC += -m64 -D__x86_64__
 # amd64_slibdir in eglibc/debian/sysdeps/i386.mk
 configure/lib64nss-nonlocal:: DEB_CONFIGURE_EXTRA_FLAGS += --libdir="\$${prefix}/lib64"
 
+# Fix for CDBS ≥ 0.4.59ubuntu4, < 0.4.83ubuntu1 (karmic and lucid).
+configure/lib32nss-nonlocal configure/lib64nss-nonlocal:: DEB_CONFIGURE_SCRIPT_ENV += CC="$(CC)"
+
 configure/lib32nss-nonlocal configure/lib64nss-nonlocal::
 	$(DEB_CONFIGURE_INVOKE) $(cdbs_configure_flags) $(DEB_CONFIGURE_EXTRA_FLAGS) $(DEB_CONFIGURE_USER_FLAGS)
 

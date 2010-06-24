@@ -1,6 +1,7 @@
 libnss-nonlocal (1.11-0debathena3) UNRELEASED; urgency=low
 
   * Remove the workaround for buggy CDBS $(CC) splitting (fixed upstream).
+  * Fix cross-compiling on karmic and lucid.
 
  -- Anders Kaseorg <andersk@mit.edu>  Wed, 23 Jun 2010 21:04:41 -0400
 
