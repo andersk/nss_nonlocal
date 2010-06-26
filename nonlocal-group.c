@@ -350,20 +350,23 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
 		   "nss_nonlocal: Group %s does not exist locally!",
 		   MAGIC_LOCAL_GROUPNAME);
 	}
-    } else {
- 	status = get_local_group(MAGIC_NONLOCAL_GROUPNAME,
-				 &nonlocal_users_group, &buffer, errnop);
-	if (status == NSS_STATUS_SUCCESS) {
-	    free(buffer);
+    }
+
+    status = get_local_group(MAGIC_NONLOCAL_GROUPNAME,
+			     &nonlocal_users_group, &buffer, errnop);
+    if (status == NSS_STATUS_SUCCESS) {
+	free(buffer);
+	if (is_nonlocal) {
 	    if (!add_group(nonlocal_users_group.gr_gid, start, size, groupsp,
 			   limit, errnop, &status))
 		return status;
-	} else if (status == NSS_STATUS_TRYAGAIN) {
-	    return status;
-	} else {
-	    syslog(LOG_WARNING, "nss_nonlocal: Group %s does not exist locally!",
-		   MAGIC_NONLOCAL_GROUPNAME);
 	}
+    } else if (status == NSS_STATUS_TRYAGAIN) {
+	if (is_nonlocal)
+	    return status;
+    } else {
+	syslog(LOG_WARNING, "nss_nonlocal: Group %s does not exist locally!",
+	       MAGIC_NONLOCAL_GROUPNAME);
     }
 
     if (!is_nonlocal)
