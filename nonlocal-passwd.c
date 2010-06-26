@@ -143,6 +143,23 @@ check_nonlocal_user(const char *user, int *errnop)
     return status;
 }
 
+enum nss_status
+get_nonlocal_passwd(const char *name, struct passwd *pwd, char **buffer,
+		    int *errnop)
+{
+    enum nss_status status;
+    size_t buflen = sysconf(_SC_GETPW_R_SIZE_MAX);
+    const struct walk_nss w = {
+	.lookup = __nss_passwd_nonlocal_lookup, .fct_name = "getpwnam_r",
+	.status = &status, .errnop = errnop, .buf = buffer, .buflen = &buflen
+    };
+    const __typeof__(&_nss_nonlocal_getpwnam_r) self = NULL;
+#define args (name, pwd, *buffer, buflen, errnop)
+#include "walk_nss.h"
+#undef args
+    return status;
+}
+
 
 static service_user *pwent_startp, *pwent_nip;
 static void *pwent_fct_start;

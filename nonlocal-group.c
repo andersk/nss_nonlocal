@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <syslog.h>
 #include <errno.h>
+#include <pwd.h>
 #include <grp.h>
 #include <nss.h>
 #include "nsswitch-internal.h"
@@ -42,7 +43,8 @@
  * If the MAGIC_NONLOCAL_GROUPNAME local group exists, then nonlocal
  * users will be automatically added to it.  Furthermore, if a local
  * user is added to this group, then that user will inherit any
- * nonlocal supplementary gids from a nonlocal user of the same name.
+ * nonlocal gids from a nonlocal user of the same name, as
+ * supplementary gids.
  */
 #define MAGIC_NONLOCAL_GROUPNAME "nss-nonlocal-users"
 
@@ -378,6 +380,29 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
 		if ((*groupsp)[i] == nonlocal_users_group.gr_gid) {
 		    is_nonlocal = true;
 		    break;
+		}
+	    }
+
+	    if (is_nonlocal) {
+		struct passwd pwbuf;
+		char *buf;
+		int nonlocal_errno = *errnop;
+		status = get_nonlocal_passwd(user, &pwbuf, &buf, errnop);
+
+		if (status == NSS_STATUS_SUCCESS) {
+		    nonlocal_errno = *errnop;
+		    status = check_nonlocal_gid(user, pwbuf.pw_gid,
+						&nonlocal_errno);
+		    free(buf);
+		}
+
+		if (status == NSS_STATUS_SUCCESS) {
+		    if (!add_group(pwbuf.pw_gid, start, size, groupsp, limit,
+				   errnop, &status))
+			return status;
+		} else if (status == NSS_STATUS_TRYAGAIN) {
+		    *errnop = nonlocal_errno;
+		    return status;
 		}
 	    }
 	}

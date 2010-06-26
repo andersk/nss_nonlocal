@@ -14,8 +14,8 @@ they exist:
 
 • If the local group ‘nss-nonlocal-users’ exists, then nonlocal users
   will be automatically added to it.  Furthermore, if a local user is
-  added to this group, then that user will inherit any nonlocal
-  supplementary gids from a nonlocal user of the same name.
+  added to this group, then that user will inherit any nonlocal gids
+  from a nonlocal user of the same name, as supplementary gids.
 
 • If the local group ‘nss-local-users’ exists, then local users will
   be automatically added to it.

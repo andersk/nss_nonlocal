@@ -45,6 +45,7 @@ typedef bool _Bool;
 #endif
 
 #include "nsswitch-internal.h"
+#include <pwd.h>
 
 struct walk_nss {
     enum nss_status *status;
@@ -59,6 +60,8 @@ struct walk_nss {
 enum nss_status check_nonlocal_uid(const char *user, uid_t uid, int *errnop);
 enum nss_status check_nonlocal_gid(const char *user, gid_t gid, int *errnop);
 enum nss_status check_nonlocal_user(const char *user, int *errnop);
+enum nss_status get_nonlocal_passwd(const char *name, struct passwd *pwd,
+				    char **buffer, int *errnop);
 
 #define NONLOCAL_IGNORE_ENV "NSS_NONLOCAL_IGNORE"
 
