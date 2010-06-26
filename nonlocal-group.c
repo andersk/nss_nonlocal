@@ -40,7 +40,9 @@
 
 /*
  * If the MAGIC_NONLOCAL_GROUPNAME local group exists, then nonlocal
- * users will be automatically added to it.
+ * users will be automatically added to it.  Furthermore, if a local
+ * user is added to this group, then that user will inherit any
+ * nonlocal supplementary gids from a nonlocal user of the same name.
  */
 #define MAGIC_NONLOCAL_GROUPNAME "nss-nonlocal-users"
 
@@ -338,7 +340,8 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
     char *buffer;
     int in, out, i;
 
-    /* Check that the user is a nonlocal user before adding any groups. */
+    /* Check that the user is a nonlocal user, or a member of the
+     * MAGIC_NONLOCAL_GROUPNAME group, before adding any groups. */
     status = check_nonlocal_user(user, errnop);
     if (status == NSS_STATUS_TRYAGAIN) {
 	return status;
@@ -369,6 +372,14 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
 	    if (!add_group(nonlocal_users_group.gr_gid, start, size, groupsp,
 			   limit, errnop, &status))
 		return status;
+	} else {
+	    int i;
+	    for (i = 0; i < *start; ++i) {
+		if ((*groupsp)[i] == nonlocal_users_group.gr_gid) {
+		    is_nonlocal = true;
+		    break;
+		}
+	    }
 	}
     } else if (status == NSS_STATUS_TRYAGAIN) {
 	if (is_nonlocal)
