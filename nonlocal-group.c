@@ -80,9 +80,9 @@ check_nonlocal_gid(const char *user, gid_t gid, int *errnop)
 
     size_t buflen = sysconf(_SC_GETGR_R_SIZE_MAX);
     char *buf = malloc(buflen);
+    errno = old_errno;
     if (buf == NULL) {
 	*errnop = ENOMEM;
-	errno = old_errno;
 	return NSS_STATUS_TRYAGAIN;
     }
 
@@ -103,9 +103,9 @@ check_nonlocal_gid(const char *user, gid_t gid, int *errnop)
 	    free(buf);
 	    buflen *= 2;
 	    buf = malloc(buflen);
+	    errno = old_errno;
 	    if (buf == NULL) {
 		*errnop = ENOMEM;
-		errno = old_errno;
 		return NSS_STATUS_TRYAGAIN;
 	    }
 	    goto morebuf;
@@ -133,9 +133,11 @@ check_nonlocal_group(const char *user, struct group *grp, int *errnop)
 
     errno = 0;
     gid = strtoul(grp->gr_name, &end, 10);
-    if (errno == 0 && *end == '\0' && (gid_t)gid == gid)
+    if (errno == 0 && *end == '\0' && (gid_t)gid == gid) {
+	errno = old_errno;
 	status = check_nonlocal_gid(user, gid, errnop);
-    errno = old_errno;
+    } else
+	errno = old_errno;
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
@@ -160,9 +162,9 @@ get_local_group(const char *name, struct group *grp, char **buffer, int *errnop)
 
     buflen = sysconf(_SC_GETGR_R_SIZE_MAX);
     *buffer = malloc(buflen);
+    errno = old_errno;
     if (*buffer == NULL) {
 	*errnop = ENOMEM;
-	errno = old_errno;
 	return NSS_STATUS_TRYAGAIN;
     }
 
@@ -184,9 +186,9 @@ get_local_group(const char *name, struct group *grp, char **buffer, int *errnop)
 	    free(*buffer);
 	    buflen *= 2;
 	    *buffer = malloc(buflen);
+	    errno = old_errno;
 	    if (*buffer == NULL) {
 		*errnop = ENOMEM;
-		errno = old_errno;
 		return NSS_STATUS_TRYAGAIN;
 	    }
 	    goto morebuf;
@@ -474,9 +476,9 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
 			newsize = limit;
 		}
 		newgroups = realloc(*groupsp, newsize * sizeof((*groupsp)[0]));
+		errno = old_errno;
 		if (newgroups == NULL) {
 		    *errnop = ENOMEM;
-		    errno = old_errno;
 		    return NSS_STATUS_TRYAGAIN;
 		}
 		*groupsp = newgroups;

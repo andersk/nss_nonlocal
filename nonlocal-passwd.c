@@ -78,9 +78,9 @@ check_nonlocal_uid(const char *user, uid_t uid, int *errnop)
 
     size_t buflen = sysconf(_SC_GETPW_R_SIZE_MAX);
     char *buf = malloc(buflen);
+    errno = old_errno;
     if (buf == NULL) {
 	*errnop = ENOMEM;
-	errno = old_errno;
 	return NSS_STATUS_TRYAGAIN;
     }
 
@@ -101,9 +101,9 @@ check_nonlocal_uid(const char *user, uid_t uid, int *errnop)
 	    free(buf);
 	    buflen *= 2;
 	    buf = malloc(buflen);
+	    errno = old_errno;
 	    if (buf == NULL) {
 		*errnop = ENOMEM;
-		errno = old_errno;
 		return NSS_STATUS_TRYAGAIN;
 	    }
 	    goto morebuf;
@@ -131,9 +131,12 @@ check_nonlocal_passwd(const char *user, struct passwd *pwd, int *errnop)
 
     errno = 0;
     uid = strtoul(pwd->pw_name, &end, 10);
-    if (errno == 0 && *end == '\0' && (uid_t)uid == uid)
+    if (errno == 0 && *end == '\0' && (uid_t)uid == uid) {
+	errno = old_errno;
 	status = check_nonlocal_uid(user, uid, errnop);
-    errno = old_errno;
+    } else {
+	errno = old_errno;
+    }
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
@@ -158,9 +161,9 @@ check_nonlocal_user(const char *user, int *errnop)
 
     size_t buflen = sysconf(_SC_GETPW_R_SIZE_MAX);
     char *buf = malloc(buflen);
+    errno = old_errno;
     if (buf == NULL) {
 	*errnop = ENOMEM;
-	errno = old_errno;
 	return NSS_STATUS_TRYAGAIN;
     }
 
@@ -181,9 +184,9 @@ check_nonlocal_user(const char *user, int *errnop)
 	    free(buf);
 	    buflen *= 2;
 	    buf = malloc(buflen);
+	    errno = old_errno;
 	    if (buf == NULL) {
 		*errnop = ENOMEM;
-		errno = old_errno;
 		return NSS_STATUS_TRYAGAIN;
 	    }
 	    goto morebuf;
