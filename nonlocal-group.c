@@ -325,7 +325,7 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
     const __typeof__(&_nss_nonlocal_initgroups_dyn) self = NULL;
 
     struct group local_users_group, nonlocal_users_group;
-    int is_local = 0;
+    bool is_nonlocal = true;
     char *buffer;
     int in, out, i;
 
@@ -334,7 +334,7 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
     if (status == NSS_STATUS_TRYAGAIN) {
 	return status;
     } else if (status != NSS_STATUS_SUCCESS) {
-	is_local = 1;
+	is_nonlocal = false;
 
 	status = get_local_group(MAGIC_LOCAL_GROUPNAME,
 				 &local_users_group, &buffer, errnop);
@@ -366,7 +366,7 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
 	}
     }
 
-    if (is_local)
+    if (!is_nonlocal)
 	return NSS_STATUS_SUCCESS;
 
     in = out = *start;
