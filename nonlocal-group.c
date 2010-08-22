@@ -390,13 +390,6 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
 	if (i < out)
 	    continue;
 
-	/* Don't let users get into MAGIC_LOCAL_GROUPNAME from nonlocal reasons. */
-	if (local_users_gid == (*groupsp)[in]) {
-	    syslog(LOG_WARNING, "nss_nonlocal: Nonlocal user %s removed from special local users group %s",
-		   user, MAGIC_LOCAL_GROUPNAME);
-	    continue;
-	}
-
 	status = check_nonlocal_gid(user, (*groupsp)[in], &nonlocal_errno);
 	if (status == NSS_STATUS_SUCCESS) {
 	    (*groupsp)[out++] = (*groupsp)[in];
