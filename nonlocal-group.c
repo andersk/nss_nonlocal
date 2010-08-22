@@ -325,35 +325,31 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
     const __typeof__(&_nss_nonlocal_initgroups_dyn) self = NULL;
 
     struct group local_users_group, nonlocal_users_group;
-    gid_t local_users_gid;
     int is_local = 0;
     char *buffer;
     int in, out, i;
 
     /* Check that the user is a nonlocal user before adding any groups. */
     status = check_nonlocal_user(user, errnop);
-    if (status == NSS_STATUS_TRYAGAIN)
+    if (status == NSS_STATUS_TRYAGAIN) {
 	return status;
-    else if (status != NSS_STATUS_SUCCESS)
+    } else if (status != NSS_STATUS_SUCCESS) {
 	is_local = 1;
 
-    status = get_local_group(MAGIC_LOCAL_GROUPNAME,
-			     &local_users_group, &buffer, errnop);
-    if (status == NSS_STATUS_SUCCESS) {
-	local_users_gid = local_users_group.gr_gid;
-	free(buffer);
-    } else if (status == NSS_STATUS_TRYAGAIN) {
-	return status;
-    } else {
-	syslog(LOG_WARNING, "nss_nonlocal: Group %s does not exist locally!",
-	       MAGIC_LOCAL_GROUPNAME);
-	local_users_gid = -1;
-    }
-
-    if (is_local) {
-	if (!add_group(local_users_gid, start, size, groupsp, limit, errnop,
-		       &status))
+	status = get_local_group(MAGIC_LOCAL_GROUPNAME,
+				 &local_users_group, &buffer, errnop);
+	if (status == NSS_STATUS_SUCCESS) {
+	    free(buffer);
+	    if (!add_group(local_users_group.gr_gid, start, size, groupsp,
+			   limit, errnop, &status))
+		return status;
+	} else if (status == NSS_STATUS_TRYAGAIN) {
 	    return status;
+	} else {
+	    syslog(LOG_WARNING,
+		   "nss_nonlocal: Group %s does not exist locally!",
+		   MAGIC_LOCAL_GROUPNAME);
+	}
     } else {
  	status = get_local_group(MAGIC_NONLOCAL_GROUPNAME,
 				 &nonlocal_users_group, &buffer, errnop);
