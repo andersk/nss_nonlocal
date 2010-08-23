@@ -9,6 +9,8 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 
+AC_HEADER_STDBOOL
+
 case "$target_cpu" in
     i386 | i486 | i586 | i686 | i786)
 	AC_DEFINE([USE_REGPARMS], [],
