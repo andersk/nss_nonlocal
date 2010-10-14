@@ -27,6 +27,17 @@
 #define NONLOCAL_H
 
 #include "config.h"
+#include "nsswitch-internal.h"
+
+struct walk_nss {
+    enum nss_status *status;
+    int (*lookup)(service_user **ni, const char *fct_name,
+		  void **fctp) internal_function;
+    const char *fct_name;
+    int *errnop;
+    char **buf;
+    size_t *buflen;
+};
 
 enum nss_status check_nonlocal_uid(const char *user, uid_t uid, int *errnop);
 enum nss_status check_nonlocal_gid(const char *user, gid_t gid, int *errnop);

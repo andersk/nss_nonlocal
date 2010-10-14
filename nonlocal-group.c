@@ -51,75 +51,49 @@ _nss_nonlocal_getgrgid_r(gid_t gid, struct group *grp,
 			 char *buffer, size_t buflen, int *errnop);
 
 
-static service_user *
-nss_group_nonlocal_database(void)
-{
-    static service_user *nip = NULL;
-    if (nip == NULL)
-	__nss_database_lookup("group_nonlocal", NULL, "", &nip);
+static service_user *__nss_group_nonlocal_database;
 
-    return nip;
+static int
+internal_function
+__nss_group_nonlocal_lookup(service_user **ni, const char *fct_name,
+			    void **fctp)
+{
+    if (__nss_group_nonlocal_database == NULL
+	&& __nss_database_lookup("group_nonlocal", NULL, NULL,
+				 &__nss_group_nonlocal_database) < 0)
+	return -1;
+
+    *ni = __nss_group_nonlocal_database;
+
+    *fctp = __nss_lookup_function(*ni, fct_name);
+    return 0;
 }
 
 
 enum nss_status
 check_nonlocal_gid(const char *user, gid_t gid, int *errnop)
 {
-    static const char *fct_name = "getgrgid_r";
-    static service_user *startp = NULL;
-    static void *fct_start = NULL;
     enum nss_status status;
-    service_user *nip;
-    union {
-	enum nss_status (*l)(gid_t gid, struct group *grp,
-			     char *buffer, size_t buflen, int *errnop);
-	void *ptr;
-    } fct;
     struct group gbuf;
-    int old_errno = errno;
-
+    char *buf;
     size_t buflen = sysconf(_SC_GETGR_R_SIZE_MAX);
-    char *buf = malloc(buflen);
-    errno = old_errno;
-    if (buf == NULL) {
-	*errnop = ENOMEM;
-	return NSS_STATUS_TRYAGAIN;
-    }
-
-    if (fct_start == NULL &&
-	__nss_group_lookup(&startp, fct_name, &fct_start) != 0) {
-	free(buf);
-	return NSS_STATUS_UNAVAIL;
-    }
-    nip = startp;
-    fct.ptr = fct_start;
-    do {
-    morebuf:
-	if (fct.l == _nss_nonlocal_getgrgid_r)
-	    status = NSS_STATUS_NOTFOUND;
-	else
-	    status = DL_CALL_FCT(fct.l, (gid, &gbuf, buf, buflen, errnop));
-	if (status == NSS_STATUS_TRYAGAIN && *errnop == ERANGE) {
-	    free(buf);
-	    buflen *= 2;
-	    buf = malloc(buflen);
-	    errno = old_errno;
-	    if (buf == NULL) {
-		*errnop = ENOMEM;
-		return NSS_STATUS_TRYAGAIN;
-	    }
-	    goto morebuf;
-	}
-    } while (__nss_next(&nip, fct_name, &fct.ptr, status, 0) == 0);
+    const struct walk_nss w = {
+	.lookup = &__nss_group_lookup, .fct_name = "getgrgid_r",
+	.status = &status, .errnop = errnop, .buf = &buf, .buflen = &buflen
+    };
+    const __typeof__(&_nss_nonlocal_getgrgid_r) self = &_nss_nonlocal_getgrgid_r;
+#define args (gid, &gbuf, buf, buflen, errnop)
+#include "walk_nss.h"
+#undef args
 
     if (status == NSS_STATUS_SUCCESS) {
 	syslog(LOG_DEBUG, "nss_nonlocal: removing local group %u (%s) from non-local user %s\n", gbuf.gr_gid, gbuf.gr_name, user);
+	free(buf);
 	status = NSS_STATUS_NOTFOUND;
     } else if (status != NSS_STATUS_TRYAGAIN) {
 	status = NSS_STATUS_SUCCESS;
     }
 
-    free(buf);
     return status;
 }
 
@@ -147,63 +121,20 @@ check_nonlocal_group(const char *user, struct group *grp, int *errnop)
 enum nss_status
 get_local_group(const char *name, struct group *grp, char **buffer, int *errnop)
 {
-    static const char *fct_name = "getgrnam_r";
-    static service_user *startp = NULL;
-    static void *fct_start = NULL;
     enum nss_status status;
-    service_user *nip;
-    union {
-	enum nss_status (*l)(const char *name, struct group *grp,
-			     char *buffer, size_t buflen, int *errnop);
-	void *ptr;
-    } fct;
-    size_t buflen;
-    int old_errno = errno;
-
-    buflen = sysconf(_SC_GETGR_R_SIZE_MAX);
-    *buffer = malloc(buflen);
-    errno = old_errno;
-    if (*buffer == NULL) {
-	*errnop = ENOMEM;
-	return NSS_STATUS_TRYAGAIN;
-    }
-
-    if (fct_start == NULL &&
-	__nss_group_lookup(&startp, fct_name, &fct_start) != 0) {
-	free(*buffer);
-	*buffer = NULL;
-	return NSS_STATUS_UNAVAIL;
-    }
-    nip = startp;
-    fct.ptr = fct_start;
-    do {
-    morebuf:
-	if (fct.l == _nss_nonlocal_getgrnam_r)
-	    status = NSS_STATUS_NOTFOUND;
-	else
-	    status = DL_CALL_FCT(fct.l, (name, grp, *buffer, buflen, errnop));
-	if (status == NSS_STATUS_TRYAGAIN && *errnop == ERANGE) {
-	    free(*buffer);
-	    buflen *= 2;
-	    *buffer = malloc(buflen);
-	    errno = old_errno;
-	    if (*buffer == NULL) {
-		*errnop = ENOMEM;
-		return NSS_STATUS_TRYAGAIN;
-	    }
-	    goto morebuf;
-	}
-    } while (__nss_next(&nip, fct_name, &fct.ptr, status, 0) == 0);
-
-    if (status != NSS_STATUS_SUCCESS) {
-	free(*buffer);
-	*buffer = NULL;
-    }
-
+    size_t buflen = sysconf(_SC_GETGR_R_SIZE_MAX);
+    const struct walk_nss w = {
+	.lookup = &__nss_group_lookup, .fct_name = "getgrnam_r",
+	.status = &status, .errnop = errnop, .buf = buffer, .buflen = &buflen
+    };
+    const __typeof__(&_nss_nonlocal_getgrnam_r) self = &_nss_nonlocal_getgrnam_r;
+#define args (name, grp, *buffer, buflen, errnop)
+#include "walk_nss.h"
+#undef args
     return status;
 }
 
-static service_user *grent_nip = NULL;
+static service_user *grent_startp, *grent_nip;
 static void *grent_fct_start;
 static union {
     enum nss_status (*l)(struct group *grp, char *buffer, size_t buflen,
@@ -215,33 +146,22 @@ static const char *grent_fct_name = "getgrent_r";
 enum nss_status
 _nss_nonlocal_setgrent(int stayopen)
 {
-    static const char *fct_name = "setgrent";
-    static void *fct_start = NULL;
     enum nss_status status;
-    service_user *nip;
-    union {
-	enum nss_status (*l)(int stayopen);
-	void *ptr;
-    } fct;
-
-    nip = nss_group_nonlocal_database();
-    if (nip == NULL)
-	return NSS_STATUS_UNAVAIL;
-    if (fct_start == NULL)
-	fct_start = __nss_lookup_function(nip, fct_name);
-    fct.ptr = fct_start;
-    do {
-	if (fct.ptr == NULL)
-	    status = NSS_STATUS_UNAVAIL;
-	else
-	    status = DL_CALL_FCT(fct.l, (stayopen));
-    } while (__nss_next(&nip, fct_name, &fct.ptr, status, 0) == 0);
+    const struct walk_nss w = {
+	.lookup = &__nss_group_nonlocal_lookup, .fct_name = "setgrent",
+	.status = &status
+    };
+    const __typeof__(&_nss_nonlocal_setgrent) self = NULL;
+#define args (stayopen)
+#include "walk_nss.h"
+#undef args
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
-    grent_nip = nip;
     if (grent_fct_start == NULL)
-	grent_fct_start = __nss_lookup_function(nip, grent_fct_name);
+	__nss_group_nonlocal_lookup(&grent_startp, grent_fct_name,
+				    &grent_fct_start);
+    grent_nip = grent_startp;
     grent_fct.ptr = grent_fct_start;
     return NSS_STATUS_SUCCESS;
 }
@@ -249,29 +169,18 @@ _nss_nonlocal_setgrent(int stayopen)
 enum nss_status
 _nss_nonlocal_endgrent(void)
 {
-    static const char *fct_name = "endgrent";
-    static void *fct_start = NULL;
     enum nss_status status;
-    service_user *nip;
-    union {
-	enum nss_status (*l)(void);
-	void *ptr;
-    } fct;
+    const struct walk_nss w = {
+	.lookup = &__nss_group_nonlocal_lookup, .fct_name = "endgrent",
+	.status = &status
+    };
+    const __typeof__(&_nss_nonlocal_endgrent) self = NULL;
 
     grent_nip = NULL;
 
-    nip = nss_group_nonlocal_database();
-    if (nip == NULL)
-	return NSS_STATUS_UNAVAIL;
-    if (fct_start == NULL)
-	fct_start = __nss_lookup_function(nip, fct_name);
-    fct.ptr = fct_start;
-    do {
-	if (fct.ptr == NULL)
-	    status = NSS_STATUS_UNAVAIL;
-	else
-	    status = DL_CALL_FCT(fct.l, ());
-    } while (__nss_next(&nip, fct_name, &fct.ptr, status, 0) == 0);
+#define args ()
+#include "walk_nss.h"
+#undef args
     return status;
 }
 
@@ -316,34 +225,20 @@ enum nss_status
 _nss_nonlocal_getgrnam_r(const char *name, struct group *grp,
 			 char *buffer, size_t buflen, int *errnop)
 {
-    static const char *fct_name = "getgrnam_r";
-    static void *fct_start = NULL;
     enum nss_status status;
-    service_user *nip;
-    union {
-	enum nss_status (*l)(const char *name, struct group *grp,
-			     char *buffer, size_t buflen, int *errnop);
-	void *ptr;
-    } fct;
+    const struct walk_nss w = {
+	.lookup = &__nss_group_nonlocal_lookup, .fct_name = "getgrnam_r",
+	.status = &status, .errnop = errnop
+    };
+    const __typeof__(&_nss_nonlocal_getgrnam_r) self = NULL;
 
     char *nonlocal_ignore = getenv(NONLOCAL_IGNORE_ENV);
     if (nonlocal_ignore != NULL && nonlocal_ignore[0] != '\0')
 	return NSS_STATUS_UNAVAIL;
 
-    nip = nss_group_nonlocal_database();
-    if (nip == NULL)
-	return NSS_STATUS_UNAVAIL;
-    if (fct_start == NULL)
-	fct_start = __nss_lookup_function(nip, fct_name);
-    fct.ptr = fct_start;
-    do {
-	if (fct.ptr == NULL)
-	    status = NSS_STATUS_UNAVAIL;
-	else
-	    status = DL_CALL_FCT(fct.l, (name, grp, buffer, buflen, errnop));
-	if (status == NSS_STATUS_TRYAGAIN && *errnop == ERANGE)
-	    break;
-    } while (__nss_next(&nip, fct_name, &fct.ptr, status, 0) == 0);
+#define args (name, grp, buffer, buflen, errnop)
+#include "walk_nss.h"
+#undef args
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
@@ -359,34 +254,20 @@ enum nss_status
 _nss_nonlocal_getgrgid_r(gid_t gid, struct group *grp,
 			 char *buffer, size_t buflen, int *errnop)
 {
-    static const char *fct_name = "getgrgid_r";
-    static void *fct_start = NULL;
     enum nss_status status;
-    service_user *nip;
-    union {
-	enum nss_status (*l)(gid_t gid, struct group *grp,
-			     char *buffer, size_t buflen, int *errnop);
-	void *ptr;
-    } fct;
+    const struct walk_nss w = {
+	.lookup = &__nss_group_nonlocal_lookup, .fct_name = "getgrgid_r",
+	.status = &status, .errnop = errnop
+    };
+    const __typeof__(&_nss_nonlocal_getgrgid_r) self = NULL;
 
     char *nonlocal_ignore = getenv(NONLOCAL_IGNORE_ENV);
     if (nonlocal_ignore != NULL && nonlocal_ignore[0] != '\0')
 	return NSS_STATUS_UNAVAIL;
 
-    nip = nss_group_nonlocal_database();
-    if (nip == NULL)
-	return NSS_STATUS_UNAVAIL;
-    if (fct_start == NULL)
-	fct_start = __nss_lookup_function(nip, fct_name);
-    fct.ptr = fct_start;
-    do {
-	if (fct.ptr == NULL)
-	    status = NSS_STATUS_UNAVAIL;
-	else
-	    status = DL_CALL_FCT(fct.l, (gid, grp, buffer, buflen, errnop));
-	if (status == NSS_STATUS_TRYAGAIN && *errnop == ERANGE)
-	    break;
-    } while (__nss_next(&nip, fct_name, &fct.ptr, status, 0) == 0);
+#define args (gid, grp, buffer, buflen, errnop)
+#include "walk_nss.h"
+#undef args
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
@@ -403,16 +284,12 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
 			     long int *size, gid_t **groupsp, long int limit,
 			     int *errnop)
 {
-    static const char *fct_name = "initgroups_dyn";
-    static void *fct_start = NULL;
     enum nss_status status;
-    service_user *nip;
-    union {
-	enum nss_status (*l)(const char *user, gid_t group, long int *start,
-			     long int *size, gid_t **groupsp, long int limit,
-			     int *errnop);
-	void *ptr;
-    } fct;
+    const struct walk_nss w = {
+	.lookup = &__nss_group_nonlocal_lookup, .fct_name = "initgroups_dyn",
+	.status = &status, .errnop = errnop
+    };
+    const __typeof__(&_nss_nonlocal_initgroups_dyn) self = NULL;
 
     struct group local_users_group, nonlocal_users_group;
     gid_t local_users_gid, gid;
@@ -493,21 +370,9 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
 
     in = out = *start;
 
-    nip = nss_group_nonlocal_database();
-    if (nip == NULL)
-	return NSS_STATUS_UNAVAIL;
-    if (fct_start == NULL)
-	fct_start = __nss_lookup_function(nip, fct_name);
-    fct.ptr = fct_start;
-
-    do {
-	if (fct.ptr == NULL)
-	    status = NSS_STATUS_UNAVAIL;
-	else
-	    status = DL_CALL_FCT(fct.l, (user, group, start, size, groupsp, limit, errnop));
-        if (status == NSS_STATUS_TRYAGAIN && *errnop == ERANGE)
-            break;
-    } while (__nss_next(&nip, fct_name, &fct.ptr, status, 0) == 0);
+#define args (user, group, start, size, groupsp, limit, errnop)
+#include "walk_nss.h"
+#undef args
     if (status != NSS_STATUS_SUCCESS)
         return status;
 
