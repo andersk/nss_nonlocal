@@ -38,7 +38,16 @@
 #include "nsswitch-internal.h"
 #include "nonlocal.h"
 
+/*
+ * If the MAGIC_NONLOCAL_GROUPNAME local group exists, then nonlocal
+ * users will be automatically added to it.
+ */
 #define MAGIC_NONLOCAL_GROUPNAME "nss-nonlocal-users"
+
+/*
+ * If the MAGIC_LOCAL_GROUPNAME local group exists, then local users
+ * will be automatically added to it.
+ */
 #define MAGIC_LOCAL_GROUPNAME "nss-local-users"
 
 
