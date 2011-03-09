@@ -279,7 +279,7 @@ _nss_nonlocal_getpwnam_r(const char *name, struct passwd *pwd,
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
-    if (check_nonlocal_gid(name, pwd->pw_gid, &group_errno) !=
+    if (check_nonlocal_gid(name, NULL, pwd->pw_gid, &group_errno) !=
 	NSS_STATUS_SUCCESS)
 	pwd->pw_gid = 65534 /* nogroup */;
     return NSS_STATUS_SUCCESS;
@@ -316,7 +316,7 @@ _nss_nonlocal_getpwuid_r(uid_t uid, struct passwd *pwd,
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
-    if (check_nonlocal_gid(pwd->pw_name, pwd->pw_gid, &group_errno) !=
+    if (check_nonlocal_gid(pwd->pw_name, NULL, pwd->pw_gid, &group_errno) !=
 	NSS_STATUS_SUCCESS)
 	pwd->pw_gid = 65534 /* nogroup */;
     return NSS_STATUS_SUCCESS;
