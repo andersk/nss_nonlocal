@@ -1,3 +1,13 @@
+libnss-nonlocal (2.0-0debathena1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    - Fix errno saving and restoring.
+    - Document nss-nonlocal-users and nss-local-users groups in README.
+    - Allow local whitelisting of nonlocal user and group memberships,
+      using the magic local ‘nss-nonlocal-users’ user and group.
+
+ -- Anders Kaseorg <andersk@mit.edu>  Tue, 29 Mar 2011 00:45:31 -0400
+
 libnss-nonlocal (1.11-0debathena3) unstable; urgency=low
 
   * Remove the workaround for buggy CDBS $(CC) splitting (fixed upstream).
