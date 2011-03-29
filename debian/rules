@@ -17,10 +17,6 @@ IS_UBUNTU := $(if $(filter Ubuntu,$(shell lsb_release -is)),y)
 LIBC6_VERSION := $(shell dpkg-query --showformat='$${Version}' --show libc6)
 libc6_ge = $(shell dpkg --compare-versions '$(LIBC6_VERSION)' ge '$(1)' && echo y)
 
-ifeq ($(call libc6_ge,2.8+20080809),y)
-    DEB_DH_SHLIBDEPS_ARGS = -- -xglibc-private
-endif
-
 debian/stamp-autotools-files: DEB_AUTO_UPDATE_AUTOMAKE += --foreign --add-missing
 
 debian/stamp-autotools-files: aclocal.m4
