@@ -8,6 +8,7 @@ libnss-nonlocal (2.0-0debathena1) UNRELEASED; urgency=low
   * Create magic ‘nss-nonlocal-users’ user.
   * Remove obsolete exclusion of glibc-private dependency.
   * Use automake 1.10 and autoconf 2.61.
+  * Add multiarch support for distros from the future.
 
  -- Anders Kaseorg <andersk@mit.edu>  Tue, 29 Mar 2011 00:45:31 -0400
 
