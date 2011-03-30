@@ -1,4 +1,4 @@
-libnss-nonlocal (2.0-0debathena1) UNRELEASED; urgency=low
+libnss-nonlocal (2.0-0debathena1) unstable; urgency=low
 
   * New upstream release.
     - Fix errno saving and restoring.
@@ -11,7 +11,7 @@ libnss-nonlocal (2.0-0debathena1) UNRELEASED; urgency=low
   * Add multiarch support for distros from the future.
   * Disable dh_buildinfo, which currently fails at multiarch.
 
- -- Anders Kaseorg <andersk@mit.edu>  Tue, 29 Mar 2011 00:45:31 -0400
+ -- Anders Kaseorg <andersk@mit.edu>  Wed, 30 Mar 2011 04:57:36 -0400
 
 libnss-nonlocal (1.11-0debathena3) unstable; urgency=low
 
