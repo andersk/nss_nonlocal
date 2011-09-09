@@ -113,6 +113,11 @@ _nss_nonlocal_getspent_r(struct spwd *pwd, char *buffer, size_t buflen,
 			 int *errnop)
 {
     enum nss_status status;
+
+    char *nonlocal_ignore = getenv(NONLOCAL_IGNORE_ENV);
+    if (nonlocal_ignore != NULL && nonlocal_ignore[0] != '\0')
+	return NSS_STATUS_UNAVAIL;
+
     if (spent_nip == NULL) {
 	status = _nss_nonlocal_setspent(0);
 	if (status != NSS_STATUS_SUCCESS)
