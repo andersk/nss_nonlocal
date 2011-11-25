@@ -1,3 +1,9 @@
+libnss-nonlocal (2.0-0debathena2) UNRELEASED; urgency=low
+
+  * Pre-Depend adduser.
+
+ -- Anders Kaseorg <andersk@mit.edu>  Fri, 25 Nov 2011 02:19:17 -0500
+
 libnss-nonlocal (2.0-0debathena1) unstable; urgency=low
 
   * New upstream release.
