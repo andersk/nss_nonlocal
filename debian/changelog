@@ -1,9 +1,9 @@
-libnss-nonlocal (2.0-0debathena2) UNRELEASED; urgency=low
+libnss-nonlocal (2.0-0debathena2) unstable; urgency=low
 
   * Pre-Depend adduser.
   * Don’t Build-Depend debhelper 9.
 
- -- Anders Kaseorg <andersk@mit.edu>  Fri, 25 Nov 2011 02:19:17 -0500
+ -- Anders Kaseorg <andersk@mit.edu>  Thu, 16 Aug 2012 20:38:35 -0400
 
 libnss-nonlocal (2.0-0debathena1) unstable; urgency=low
 
