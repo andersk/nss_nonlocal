@@ -58,6 +58,7 @@ __nss_shadow_nonlocal_lookup(service_user **ni, const char *fct_name,
 }
 
 
+static bool spent_initialized = false;
 static service_user *spent_startp, *spent_nip;
 static void *spent_fct_start;
 static union {
@@ -82,9 +83,12 @@ _nss_nonlocal_setspent(int stayopen)
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
-    if (spent_fct_start == NULL)
+    if (!spent_initialized) {
 	__nss_shadow_nonlocal_lookup(&spent_startp, spent_fct_name,
 				     &spent_fct_start);
+	__sync_synchronize();
+	spent_initialized = true;
+    }
     spent_nip = spent_startp;
     spent_fct.ptr = spent_fct_start;
     return NSS_STATUS_SUCCESS;

@@ -162,6 +162,7 @@ get_nonlocal_passwd(const char *name, struct passwd *pwd, char **buffer,
 }
 
 
+static bool pwent_initialized = false;
 static service_user *pwent_startp, *pwent_nip;
 static void *pwent_fct_start;
 static union {
@@ -186,9 +187,12 @@ _nss_nonlocal_setpwent(int stayopen)
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
-    if (pwent_fct_start == NULL)
+    if (!pwent_initialized) {
 	__nss_passwd_nonlocal_lookup(&pwent_startp, pwent_fct_name,
 				     &pwent_fct_start);
+	__sync_synchronize();
+	pwent_initialized = true;
+    }
     pwent_nip = pwent_startp;
     pwent_fct.ptr = pwent_fct_start;
     return NSS_STATUS_SUCCESS;

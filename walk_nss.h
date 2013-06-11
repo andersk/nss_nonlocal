@@ -24,8 +24,9 @@
  */
 
 {
-    static service_user *startp = NULL;
-    static void *fct_start = NULL;
+    static bool initialized = false;
+    static service_user *startp;
+    static void *fct_start;
 
     service_user *nip;
     union {
@@ -34,10 +35,13 @@
     } fct;
     int old_errno = errno;
 
-    if (fct_start == NULL &&
-	w.lookup(&startp, w.fct_name, &fct_start) != 0) {
-	*w.status = NSS_STATUS_UNAVAIL;
-	goto walk_nss_out;
+    if (!initialized) {
+	if (w.lookup(&startp, w.fct_name, &fct_start) != 0) {
+	    *w.status = NSS_STATUS_UNAVAIL;
+	    goto walk_nss_out;
+	}
+	__sync_synchronize();
+	initialized = true;
     }
 
     nip = startp;

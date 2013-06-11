@@ -171,6 +171,7 @@ get_local_group(const char *name, struct group *grp, char **buffer, int *errnop)
     return status;
 }
 
+static bool grent_initialized = false;
 static service_user *grent_startp, *grent_nip;
 static void *grent_fct_start;
 static union {
@@ -195,9 +196,12 @@ _nss_nonlocal_setgrent(int stayopen)
     if (status != NSS_STATUS_SUCCESS)
 	return status;
 
-    if (grent_fct_start == NULL)
+    if (!grent_initialized) {
 	__nss_group_nonlocal_lookup(&grent_startp, grent_fct_name,
 				    &grent_fct_start);
+	__sync_synchronize();
+	grent_initialized = true;
+    }
     grent_nip = grent_startp;
     grent_fct.ptr = grent_fct_start;
     return NSS_STATUS_SUCCESS;
