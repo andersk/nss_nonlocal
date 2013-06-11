@@ -450,7 +450,9 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
 #define args (user, group, start, size, groupsp, limit, errnop)
 #include "walk_nss.h"
 #undef args
-    if (status != NSS_STATUS_SUCCESS)
+    if (status == NSS_STATUS_NOTFOUND || status == NSS_STATUS_UNAVAIL)
+	return NSS_STATUS_SUCCESS;
+    else if (status != NSS_STATUS_SUCCESS)
         return status;
 
     for (; in < *start; ++in) {
