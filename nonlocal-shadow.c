@@ -23,17 +23,17 @@
  */
 
 #define _GNU_SOURCE
+
 #include <sys/types.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
 #include <dlfcn.h>
-#include <stdio.h>
-#include <syslog.h>
 #include <errno.h>
-#include <shadow.h>
 #include <nss.h>
+#include <shadow.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include <syslog.h>
 
 #include "nsswitch-internal.h"
 #include "nonlocal.h"
