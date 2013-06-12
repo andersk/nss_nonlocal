@@ -213,7 +213,7 @@ _nss_nonlocal_endgrent(void)
     enum nss_status status;
     const struct walk_nss w = {
 	.lookup = &__nss_group_nonlocal_lookup, .fct_name = "endgrent",
-	.status = &status
+	.status = &status, .all_values = 1,
     };
     const __typeof__(&_nss_nonlocal_endgrent) self = NULL;
 
@@ -361,7 +361,7 @@ _nss_nonlocal_initgroups_dyn(const char *user, gid_t group, long int *start,
     enum nss_status status;
     const struct walk_nss w = {
 	.lookup = &__nss_group_nonlocal_lookup, .fct_name = "initgroups_dyn",
-	.status = &status, .errnop = errnop
+	.status = &status, .all_values = 1, .errnop = errnop
     };
     const __typeof__(&_nss_nonlocal_initgroups_dyn) self = NULL;
 

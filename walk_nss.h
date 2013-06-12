@@ -79,7 +79,8 @@
 	    }
 	    goto walk_nss_morebuf;
 	}
-    } while (__nss_next(&nip, w.fct_name, &fct.ptr, *w.status, 0) == 0);
+    } while (__nss_next(&nip, w.fct_name, &fct.ptr, *w.status, w.all_values) ==
+	     0);
 
     if (w.buf != NULL && *w.status != NSS_STATUS_SUCCESS) {
 	free(*w.buf);

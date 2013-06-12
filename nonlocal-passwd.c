@@ -204,7 +204,7 @@ _nss_nonlocal_endpwent(void)
     enum nss_status status;
     const struct walk_nss w = {
 	.lookup = &__nss_passwd_nonlocal_lookup, .fct_name = "endpwent",
-	.status = &status
+	.status = &status, .all_values = 1,
     };
     const __typeof__(&_nss_nonlocal_endpwent) self = NULL;
 
