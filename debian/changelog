@@ -5,6 +5,8 @@ libnss-nonlocal (2.1-0debathena1) UNRELEASED; urgency=low
     - Guard one-time initialization with memory barriers.
     - Make initgroups_dyn succeed when adding only magic groups.
   * Rewrite packaging with Debhelper 7.
+  * Move magic user and group creation to separate libnss-nonlocal-common
+    package.
 
  -- Anders Kaseorg <andersk@mit.edu>  Wed, 12 Jun 2013 20:02:33 -0400
 
