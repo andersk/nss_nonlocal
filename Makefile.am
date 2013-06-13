@@ -10,3 +10,6 @@ libnss_nonlocal_la_LDFLAGS = \
 install-exec-hook:
 	rm -f $(DESTDIR)$(libdir)/libnss_nonlocal.so
 	rm -f $(DESTDIR)$(libdir)/libnss_nonlocal.la
+
+uninstall-local:
+	rm -f $(DESTDIR)$(libdir)/libnss_nonlocal.so.*
