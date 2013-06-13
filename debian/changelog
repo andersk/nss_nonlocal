@@ -4,6 +4,7 @@ libnss-nonlocal (2.1-0debathena1) UNRELEASED; urgency=low
     - Support Automake 1.12.
     - Guard one-time initialization with memory barriers.
     - Make initgroups_dyn succeed when adding only magic groups.
+  * Rewrite packaging with Debhelper 7.
 
  -- Anders Kaseorg <andersk@mit.edu>  Wed, 12 Jun 2013 20:02:33 -0400
 
