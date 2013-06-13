@@ -1,3 +1,12 @@
+libnss-nonlocal (2.1-0debathena1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    - Support Automake 1.12.
+    - Guard one-time initialization with memory barriers.
+    - Make initgroups_dyn succeed when adding only magic groups.
+
+ -- Anders Kaseorg <andersk@mit.edu>  Wed, 12 Jun 2013 20:02:33 -0400
+
 libnss-nonlocal (2.0-0debathena2) unstable; urgency=low
 
   * Pre-Depend adduser.
