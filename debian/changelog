@@ -1,4 +1,4 @@
-libnss-nonlocal (2.1-0debathena1) UNRELEASED; urgency=low
+libnss-nonlocal (2.1-0debathena1) unstable; urgency=low
 
   * New upstream release.
     - Support Automake 1.12.
@@ -8,7 +8,7 @@ libnss-nonlocal (2.1-0debathena1) UNRELEASED; urgency=low
   * Move magic user and group creation to separate libnss-nonlocal-common
     package.
 
- -- Anders Kaseorg <andersk@mit.edu>  Wed, 12 Jun 2013 20:02:33 -0400
+ -- Anders Kaseorg <andersk@mit.edu>  Thu, 13 Jun 2013 04:43:16 -0400
 
 libnss-nonlocal (2.0-0debathena2) unstable; urgency=low
 
