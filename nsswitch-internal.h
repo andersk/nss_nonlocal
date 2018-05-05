@@ -6,10 +6,13 @@
 #ifndef NSSWITCH_INTERNAL_H
 #define NSSWITCH_INTERNAL_H
 
+#include <features.h>
 #include "config.h"
 
 /* glibc/config.h.in */
-#if defined USE_REGPARMS && !defined PROF && !defined __BOUNDED_POINTERS__
+#if __GLIBC_PREREQ(2, 27)
+# define internal_function
+#elif defined USE_REGPARMS && !defined PROF && !defined __BOUNDED_POINTERS__
 # define internal_function __attribute__ ((regparm (3), stdcall))
 #else
 # define internal_function
