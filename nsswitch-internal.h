@@ -21,17 +21,20 @@
 /* glibc/nss/nsswitch.h */
 typedef struct service_user service_user;
 
-extern int __nss_next (service_user **ni, const char *fct_name, void **fctp,
-		       int status, int all_values);
+extern int __nss_next2 (service_user **ni, const char *fct_name,
+			const char *fct2_name, void **fctp, int status,
+			int all_values);
 extern int __nss_database_lookup (const char *database,
 				  const char *alternative_name,
 				  const char *defconfig, service_user **ni);
 extern void *__nss_lookup_function (service_user *ni, const char *fct_name);
 
 /* glibc/nss/XXX-lookup.c */
-extern int __nss_passwd_lookup (service_user **ni, const char *fct_name,
-				void **fctp) internal_function;
-extern int __nss_group_lookup (service_user **ni, const char *fct_name,
-			        void **fctp) internal_function;
+extern int __nss_passwd_lookup2 (service_user **ni, const char *fct_name,
+				 const char *fct2_name, void **fctp)
+    internal_function;
+extern int __nss_group_lookup2 (service_user **ni, const char *fct_name,
+				const char *fct2_name, void **fctp)
+    internal_function;
 
 #endif /* NSSWITCH_INTERNAL_H */
